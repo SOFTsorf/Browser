@@ -5,298 +5,218 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Android Legacy Browser</title>
     <style>
-        /* Holo Dark Theme Konstanten */
+        /* Android 4.0 "Holo Dark" Design */
         :root {
             --holo-blue: #33b5e5;
             --bg-dark: #1a1a1a;
-            --dialog-bg: #222222;
-            --divider: #333333;
-            --text-main: #ffffff;
-            --text-sub: #888888;
+            --dialog-bg: #282828;
+            --text-color: #e0e0e0;
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background-color: #000;
-            color: var(--text-main);
+            margin: 0; padding: 0; height: 100%;
+            background-color: #000; color: white;
             font-family: 'Roboto', sans-serif;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* HEADER & TABS */
-        #browser-ui {
-            background-color: var(--bg-dark);
+        /* Navigationsleiste */
+        #browser-header {
+            background: linear-gradient(to bottom, #3c3c3c, #1a1a1a);
             border-bottom: 2px solid #000;
-            z-index: 10;
+            padding: 4px;
         }
 
         #tab-bar {
-            display: flex;
-            background-color: #000;
-            overflow-x: auto;
-            padding-top: 4px;
+            display: flex; gap: 2px; overflow-x: auto; padding-bottom: 4px;
         }
 
         .tab {
-            flex: 1;
-            min-width: 100px;
-            max-width: 200px;
-            padding: 8px 12px;
-            background: #222;
-            border: 1px solid #333;
-            border-bottom: none;
-            margin-right: 2px;
-            font-size: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--text-sub);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: #222; color: #888; padding: 8px 12px;
+            font-size: 13px; min-width: 100px; border: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
         .tab.active {
-            background: var(--bg-dark);
-            color: var(--holo-blue);
-            border-top: 3px solid var(--holo-blue);
+            background: var(--bg-dark); color: var(--holo-blue);
+            border-top: 2px solid var(--holo-blue);
         }
 
-        .close-tab { margin-left: 8px; font-weight: bold; color: #666; }
-
-        /* TOOLBAR / ADRESSLEISTE */
         #toolbar {
-            display: flex;
-            align-items: center;
-            padding: 6px;
-            gap: 6px;
-            background: linear-gradient(to bottom, #333, #1a1a1a);
+            display: flex; align-items: center; gap: 5px; padding: 4px;
         }
 
-        .nav-btn {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            font-size: 20px;
-            padding: 5px;
-            cursor: pointer;
+        .btn {
+            background: none; border: none; color: white;
+            font-size: 20px; cursor: pointer; padding: 5px 10px;
         }
 
-        #url-input {
-            flex-grow: 1;
-            background: #fff;
-            color: #000;
-            border: 1px solid var(--holo-blue);
-            padding: 8px 10px;
-            border-radius: 2px;
-            font-size: 14px;
-            outline: none;
+        #url-bar {
+            flex-grow: 1; background: #fff; color: #000;
+            border: 1px solid var(--holo-blue); padding: 8px;
+            border-radius: 2px; font-size: 14px; outline: none;
         }
 
-        /* VIEWPORT */
+        /* Web-Ansicht */
         #viewport-container {
-            flex-grow: 1;
-            position: relative;
-            background: #fff;
+            flex-grow: 1; position: relative; background: #fff;
         }
 
         iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+            width: 100%; height: 100%; border: none;
         }
 
-        /* ANDROID SYSTEM POPUP (EXAKT WIE IM BILD) */
+        /* --- ANDROID POPUP (EXAKT WIE IM BILD) --- */
         #popup-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none; /* Initial versteckt */
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none;
+            justify-content: center; align-items: center; z-index: 10000;
         }
 
         #popup-window {
-            background-color: var(--dialog-bg);
-            width: 85%;
-            max-width: 320px;
-            border: 1px solid #444;
-            box-shadow: 0 10px 30px rgba(0,0,0,1);
+            background-color: var(--dialog-bg); width: 85%; max-width: 320px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.9);
         }
 
         #popup-header {
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 2px solid var(--holo-blue);
+            padding: 15px; display: flex; align-items: center; gap: 10px;
         }
 
-        #popup-icon {
-            width: 32px;
-            height: 32px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="gray"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>') no-repeat center;
+        .warning-icon {
+            width: 24px; height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23999"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>');
         }
 
-        #popup-title {
-            color: var(--holo-blue);
-            font-size: 18px;
-            font-weight: 500;
+        #popup-title { color: var(--holo-blue); font-size: 18px; }
+
+        .blue-divider { height: 2px; background-color: var(--holo-blue); width: 100%; }
+
+        #popup-body { padding: 20px 15px; color: var(--text-color); font-size: 15px; line-height: 1.4; }
+
+        #popup-footer { border-top: 1px solid #444; text-align: center; }
+
+        #popup-btn {
+            width: 100%; padding: 15px; background: none; border: none;
+            color: white; font-weight: bold; font-size: 16px; cursor: pointer;
         }
 
-        #popup-content {
-            padding: 20px 15px;
-            color: #ccc;
-            font-size: 15px;
-            line-height: 1.4;
-        }
-
-        #popup-footer {
-            border-top: 1px solid #333;
-            display: flex;
-        }
-
-        #popup-ok-btn {
-            flex: 1;
-            padding: 15px;
-            background: none;
-            border: none;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
-        #popup-ok-btn:active { background-color: #333; }
+        #popup-btn:active { background: #444; }
 
     </style>
 </head>
 <body>
 
-    <div id="browser-ui">
-        <div id="tab-bar">
-            </div>
+    <div id="browser-header">
+        <div id="tab-bar"></div>
         <div id="toolbar">
-            <button class="nav-btn" onclick="browserBack()">◀</button>
-            <button class="nav-btn" onclick="addTab()">✚</button>
-            <input type="text" id="url-input" placeholder="Suchen oder URL eingeben" onkeydown="handleUrlInput(event)">
-            <button class="nav-btn" onclick="showMenu()">⋮</button>
+            <button class="btn" onclick="goBack()">◀</button>
+            <button class="btn" onclick="goForward()">▶</button>
+            <input type="text" id="url-bar" placeholder="Suchen oder URL eingeben" onkeydown="handleInput(event)">
+            <button class="btn" onclick="addTab()">✚</button>
         </div>
     </div>
 
     <div id="viewport-container">
-        <iframe id="main-frame" name="browser_frame"></iframe>
+        <iframe id="browser-frame" name="browser_frame" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
 
         <div id="popup-overlay">
             <div id="popup-window">
                 <div id="popup-header">
-                    <div id="popup-icon"></div>
-                    <div id="popup-title">System Warning!</div>
+                    <div class="warning-icon"></div>
+                    <div id="popup-title">Systemmeldung</div>
                 </div>
-                <div id="popup-content">
-                    Your phone is infected with viruses, and immediate action is required. Continue and follow the instructions to fix your phone. **Exit at your own risk**
+                <div class="blue-divider"></div>
+                <div id="popup-body">
+                    Auf <span id="site-name" style="font-weight:bold">Website</span> wird folgendes angezeigt:
+                    <br><br>
+                    <span id="popup-msg">Inhalt der Nachricht...</span>
                 </div>
                 <div id="popup-footer">
-                    <button id="popup-ok-btn" onclick="closePopup()">OK</button>
+                    <button id="popup-btn" onclick="closePopup()">OK</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const GOOGLE_OLD = "https://www.google.com/webhp?gbv=1";
-        const SEARCH_URL = "https://www.google.com/search?gbv=1&q=";
-
-        let tabs = [{ id: 1, title: "Google", url: GOOGLE_OLD }];
+        // Startseite: Eine Version von Google, die Iframes erlaubt (Proxy/Mirror)
+        // Hinweis: Echte Google-Seiten blockieren das Laden in Iframes!
+        const HOME_PAGE = "https://www.bing.com"; // Bing erlaubt Iframes oft eher als Google
+        let tabs = [{ id: 1, title: "Startseite", url: HOME_PAGE }];
         let activeTabId = 1;
 
-        // Initialisierung
-        window.onload = () => {
+        function init() {
             renderTabs();
-            loadUrlInFrame(GOOGLE_OLD);
-        };
+            loadUrl(HOME_PAGE);
+            
+            // Popup-Abfangen Simulation
+            window.alert = function(msg) {
+                showAndroidPopup(msg);
+            };
+        }
 
         function renderTabs() {
-            const container = document.getElementById('tab-bar');
-            container.innerHTML = "";
-            tabs.forEach(tab => {
-                const tabEl = document.createElement('div');
-                tabEl.className = `tab ${tab.id === activeTabId ? 'active' : ''}`;
-                tabEl.innerHTML = `<span>${tab.title}</span><span class="close-tab" onclick="removeTab(${tab.id}, event)">×</span>`;
-                tabEl.onclick = () => switchTab(tab.id);
-                container.appendChild(tabEl);
+            const bar = document.getElementById('tab-bar');
+            bar.innerHTML = "";
+            tabs.forEach(t => {
+                const div = document.createElement('div');
+                div.className = `tab ${t.id === activeTabId ? 'active' : ''}`;
+                div.innerHTML = `<span>${t.title}</span>`;
+                div.onclick = () => switchTab(t.id);
+                bar.appendChild(div);
             });
         }
 
-        function handleUrlInput(e) {
+        function handleInput(e) {
             if (e.key === 'Enter') {
-                let val = document.getElementById('url-input').value.trim();
-                if (!val) return;
-
-                let finalUrl = "";
-                // Prüfung: Ist es eine URL oder ein Suchbegriff?
-                const isUrl = val.includes('.') && !val.includes(' ');
-
-                if (isUrl) {
-                    finalUrl = val.startsWith('http') ? val : 'https://' + val;
+                let input = document.getElementById('url-bar').value.trim();
+                let url = "";
+                
+                // Prüfen: URL oder Suche?
+                if (input.includes('.') && !input.includes(' ')) {
+                    url = input.startsWith('http') ? input : 'https://' + input;
                 } else {
-                    finalUrl = SEARCH_URL + encodeURIComponent(val);
+                    // Suche über Bing (da Google Iframes blockiert)
+                    url = "https://www.bing.com/search?q=" + encodeURIComponent(input);
                 }
-
-                updateCurrentTab(finalUrl, val);
+                
+                const tab = tabs.find(t => t.id === activeTabId);
+                tab.url = url;
+                tab.title = input.substring(0, 12);
+                loadUrl(url);
+                renderTabs();
             }
         }
 
-        function updateCurrentTab(url, title) {
-            const tab = tabs.find(t => t.id === activeTabId);
-            tab.url = url;
-            tab.title = title.substring(0, 15);
-            loadUrlInFrame(url);
-            renderTabs();
+        function loadUrl(url) {
+            document.getElementById('browser-frame').src = url;
+            document.getElementById('url-bar').value = url;
         }
 
-        function loadUrlInFrame(url) {
-            document.getElementById('main-frame').src = url;
-            document.getElementById('url-input').value = (url === GOOGLE_OLD) ? "" : url;
+        function addTab() {
+            const id = Date.now();
+            tabs.push({ id: id, title: "Neuer Tab", url: HOME_PAGE });
+            switchTab(id);
         }
 
         function switchTab(id) {
             activeTabId = id;
             const tab = tabs.find(t => t.id === id);
-            loadUrlInFrame(tab.url);
+            loadUrl(tab.url);
             renderTabs();
         }
 
-        function addTab() {
-            const newId = Date.now();
-            tabs.push({ id: newId, title: "Neuer Tab", url: GOOGLE_OLD });
-            switchTab(newId);
-        }
+        function goBack() { window.history.back(); }
+        function goForward() { window.history.forward(); }
 
-        function removeTab(id, e) {
-            e.stopPropagation();
-            if (tabs.length === 1) return;
-            tabs = tabs.filter(t => t.id !== id);
-            if (activeTabId === id) activeTabId = tabs[0].id;
-            switchTab(activeTabId);
-        }
-
-        function browserBack() {
-            // Hinweis: In Iframes ist echte Navigation oft durch CORS gesperrt.
-            window.history.back();
-        }
-
-        // POPUP LOGIK
-        // Diese Funktion kannst du aufrufen, um das Android-Popup anzuzeigen
-        function triggerSystemWarning() {
+        // POPUP FUNKTION
+        function showAndroidPopup(msg) {
+            const frame = document.getElementById('browser-frame');
+            let domain = "Webseite";
+            try { domain = new URL(frame.src).hostname; } catch(e) {}
+            
+            document.getElementById('site-name').innerText = domain;
+            document.getElementById('popup-msg').innerText = msg;
             document.getElementById('popup-overlay').style.display = 'flex';
         }
 
@@ -304,11 +224,12 @@
             document.getElementById('popup-overlay').style.display = 'none';
         }
 
-        // Simuliere das Abfangen: Zeige das Popup nach 3 Sekunden
+        // Test-Popup nach 2 Sekunden
         setTimeout(() => {
-            triggerSystemWarning();
-        }, 3000);
+            showAndroidPopup("Your phone is infected with viruses, and immediate action is required. Continue and follow the instructions to fix your phone.");
+        }, 2000);
 
+        init();
     </script>
 </body>
 </html>
